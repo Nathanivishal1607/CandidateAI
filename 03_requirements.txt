@@ -1,0 +1,28 @@
+# ============================================================
+# Python NLP + OCR Microservice Dependencies
+# AI-Powered Candidate Search System
+# ============================================================
+
+# Web Framework
+flask==3.0.2
+flask-cors==4.0.0
+
+# Sentence Transformers (semantic similarity scoring)
+sentence-transformers==2.6.1
+
+# PDF text extraction (text-based PDFs)
+pymupdf==1.23.26
+
+# OCR (scanned image / scanned PDF)
+paddlepaddle>=3.0.0
+paddleocr
+paddleocr==2.7.3
+
+# Data handling
+numpy==1.26.4
+Pillow==10.3.0
+python-dotenv==1.0.1
+
+# HTTP utilities
+requests==2.31.0
+gunicorn==21.2.0
