@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="AI-Powered Natural Language Candidate Search with OCR Resume Parsing — find the right candidates instantly." />
+  <title>CandidateAI — Intelligent Recruiter Search</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── Navigation Bar ─────────────────────────────────── -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="brand-icon">⚡</span>
+      <span class="brand-name">CandidateAI</span>
+    </div>
+    <div class="nav-tagline">Powered by Claude API  + Sentence Transformers + PaddleOCR</div>
+  </nav>
+
+  <!-- ── Hero Section ───────────────────────────────────── -->
+  <header class="hero">
+    <div class="hero-content">
+      <h1 class="hero-title">Find the Perfect Candidate<br /><span class="gradient-text">Using Plain English</span></h1>
+      <p class="hero-subtitle">
+        Describe who you're looking for in natural language. Our AI extracts intent, semantically matches resumes, and explains every match.
+      </p>
+
+      <!-- ── Search Bar ────────────────────────────────── -->
+      <div class="search-container" id="search-container">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input
+            id="query-input"
+            type="text"
+            class="search-input"
+            placeholder='Try: "Java developer with 2 years SQL experience in New York"'
+            autocomplete="off"
+          />
+          <button id="search-btn" class="search-btn" onclick="handleSearch()">
+            <span id="search-btn-text">Search</span>
+            <span id="search-spinner" class="spinner hidden"></span>
+          </button>
+        </div>
+
+        <!-- Quick example chips -->
+        <div class="query-chips">
+          <span class="chip-label">Try:</span>
+          <button class="chip" onclick="setQuery('Java developer with SQL and 3 years experience')">Java + SQL</button>
+          <button class="chip" onclick="setQuery('Python machine learning engineer with TensorFlow')">Python ML</button>
+          <button class="chip" onclick="setQuery('Senior React frontend developer in San Francisco')">React Senior</button>
+          <button class="chip" onclick="setQuery('DevOps engineer with Docker and Kubernetes')">DevOps K8s</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating background orbs for visual depth -->
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+  </header>
+
+  <!-- ── Main Content ───────────────────────────────────── -->
+  <main class="main-content">
+
+    <!-- ── Intent Display ─────────────────────────────── -->
+    <section id="intent-section" class="intent-section hidden">
+      <div class="intent-card">
+        <div class="intent-header">
+          <span class="intent-icon">🧠</span>
+          <h2 class="intent-title">Extracted Intent (Claude AI)</h2>
+        </div>
+        <div class="intent-chips" id="intent-chips"></div>
+      </div>
+    </section>
+
+    <!-- ── Resume Upload ───────────────────────────────── -->
+    <section class="upload-section">
+      <div class="upload-card" id="upload-card">
+        <div class="upload-icon">📄</div>
+        <h3 class="upload-title">Upload a New Resume</h3>
+        <p class="upload-desc">Supports PDF (text or scanned) and image files. PaddleOCR auto-activates for scanned documents.</p>
+
+        <form id="upload-form" class="upload-form">
+          <div class="form-row">
+            <input type="text"  id="u-name"     class="form-input" placeholder="Candidate name" />
+            <input type="email" id="u-email"    class="form-input" placeholder="Email address" />
+          </div>
+          <div class="form-row">
+            <input type="text"  id="u-skills"   class="form-input" placeholder="Skills (comma-separated)" />
+            <input type="text"  id="u-location" class="form-input" placeholder="Location" />
+            <input type="number" id="u-exp"     class="form-input" placeholder="Years exp" min="0" max="40" step="0.5" />
+          </div>
+
+          <div class="file-drop-zone" id="drop-zone">
+            <input type="file" id="resume-file" name="file" accept=".pdf,.png,.jpg,.jpeg,.tiff,.bmp" hidden />
+            <div class="drop-content" onclick="document.getElementById('resume-file').click()">
+              <span class="drop-icon">☁️</span>
+              <p class="drop-text">Click or drag & drop resume here</p>
+              <p class="drop-hint" id="file-name-display">PDF, PNG, JPG, TIFF up to 20 MB</p>
+            </div>
+          </div>
+
+          <button type="button" class="upload-btn" onclick="handleUpload()" id="upload-btn">
+            <span id="upload-btn-text">Upload & Parse Resume</span>
+            <span id="upload-spinner" class="spinner hidden"></span>
+          </button>
+        </form>
+
+        <div id="upload-result" class="upload-result hidden"></div>
+      </div>
+    </section>
+
+    <!-- ── Results Area ────────────────────────────────── -->
+    <section id="results-section" class="results-section hidden">
+      <div class="results-header">
+        <h2 class="results-title" id="results-title">Top Candidates</h2>
+        <span class="results-count" id="results-count"></span>
+      </div>
+      <div class="candidates-grid" id="candidates-grid"></div>
+    </section>
+
+    <!-- ── Empty / Error States ────────────────────────── -->
+    <div id="empty-state" class="empty-state hidden">
+      <div class="empty-icon">🔍</div>
+      <h3>No candidates found</h3>
+      <p>Try broadening your query or upload more resumes.</p>
+    </div>
+
+    <div id="error-state" class="error-state hidden">
+      <div class="error-icon">⚠️</div>
+      <h3 id="error-title">Search failed</h3>
+      <p id="error-message">Could not connect to backend. Please ensure Tomcat and the Python service are running.</p>
+    </div>
+
+  </main>
+
+  <!-- ── Footer ─────────────────────────────────────────── -->
+  <footer class="footer">
+    <p>CandidateAI &copy; 2024 · Claude API · Sentence Transformers · PaddleOCR · Apache Tomcat</p>
+  </footer>
+
+  <!-- ── Candidate Detail Modal ─────────────────────────── -->
+  <div id="modal-overlay" class="modal-overlay hidden" onclick="closeModal()">
+    <div class="modal" id="modal" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
